@@ -41,6 +41,24 @@ Canary.prototype.getStateHumidity = function(callback) {
   this.getSensor('humidity', callback);
 }
 
+Canary.prototype.getStateAirQuality = function(callback) {
+  this.getSensor('air_quality', (err, val) => {
+    let quality;
+    if (val <= 0.3) {
+      quality = 1;
+    } else if (val <= 0.4) {
+      quality = 2;
+    } else if (val <= 0.5) {
+      quality = 3;
+    } else if (val <= 0.6) {
+      quality = 4;
+    } else {
+      quality = 5;
+    }
+    callback(err, quality);
+  });
+}
+
 Canary.prototype.poll = function() {
   this.updateSensorValues();
   setTimeout(() => this.poll(), this.pollingInterval);
@@ -112,23 +130,29 @@ Canary.prototype.getServices = function() {
   let info = new Service.AccessoryInformation();
 
   info
-    .setCharacteristic(Characteristic.Manufacturer, "Canary")
-    .setCharacteristic(Characteristic.Model, "Homebridge")
+    .setCharacteristic(Characteristic.Manufacturer, 'Canary')
+    .setCharacteristic(Characteristic.Model, 'Homebridge')
     .setCharacteristic(Characteristic.SerialNumber, this.serialNumber);
 
-  let temperature = new Service.TemperatureSensor(this.name);
+  let temperature = new Service.TemperatureSensor(this.name + ' Temperature');
 
   temperature
     .getCharacteristic(Characteristic.CurrentTemperature)
-    .on("get", this.getStateTemperature.bind(this));
+    .on('get', this.getStateTemperature.bind(this));
 
-  let humidity = new Service.HumiditySensor(this.name);
+  let humidity = new Service.HumiditySensor(this.name + ' Humidity');
 
   humidity
     .getCharacteristic(Characteristic.CurrentRelativeHumidity)
-    .on("get", this.getStateHumidity.bind(this));
+    .on('get', this.getStateHumidity.bind(this));
 
-  return [info, temperature, humidity];
+  let airq = new Service.AirQualitySensor(this.name + ' Air Quality');
+
+  airq
+    .getCharacteristic(Characteristic.AirQuality)
+    .on('get', this.getStateAirQuality.bind(this));
+
+  return [info, temperature, humidity, airq];
 }
 
 Canary.prototype.login = async function() {
