@@ -1,0 +1,8 @@
+{
+  "name": "Canary",
+  "accessory": "Canary",
+  "serial": "<serial>",
+  "username": "<username>",
+  "password": "<password>",
+  "pollingInterval": 300
+}
