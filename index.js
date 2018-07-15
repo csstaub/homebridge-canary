@@ -21,15 +21,12 @@ function Canary(log, config, api) {
 
   // Log in if necessary
   if (!this.session) {
-    this.log('No session, logging in now');
-
     this.login()
       .catch((err) => this.log('Error on login: ' + err))
-      .then((res) => this.setSession(res));
+      .then((res) => { this.setSession(res); this.update() });
   }
 
   // Run periodically in background
-  this.updateSensorValues();
   setTimeout(() => this.poll(), this.pollingInterval);
 }
 
@@ -60,7 +57,7 @@ Canary.prototype.getStateAirQuality = function(callback) {
 }
 
 Canary.prototype.poll = function() {
-  this.updateSensorValues();
+  this.update();
   setTimeout(() => this.poll(), this.pollingInterval);
 }
 
@@ -71,6 +68,18 @@ Canary.prototype.getSensor = function(sensor, callback) {
   }
 
   callback(null, this.cached[sensor]);
+}
+
+Canary.prototype.update = function() {
+  if (!this.session) {
+    this.log('No session, skipping update');
+    return;
+  }
+
+  this.log('Updating sensor values');
+
+  this.updateSensorValues()
+    .catch((err) => this.log('Error on update: ' + err));
 }
 
 Canary.prototype.updateSensorValues = async function() {
@@ -110,9 +119,6 @@ Canary.prototype.deviceId = async function() {
   for (var i in locations) {
     for (var j in locations[i].devices) {
       let device = locations[i].devices[j];
-
-      this.log('Found device: ' + device.serial_number)
-
       if (device.serial_number == this.serialNumber) {
         return Promise.resolve(device.id);
       }
