@@ -1,6 +1,7 @@
 {
   "name": "Canary",
   "accessory": "Canary",
+  "model": "AllInOne|Flex",
   "serial": "<serial>",
   "username": "<username>",
   "password": "<password>",
